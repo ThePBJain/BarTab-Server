@@ -32,7 +32,7 @@ router.post('/register', function(req, res, next) {
           console.log(err)
           console.log(customer)
           console.log(customer.id)
-          newUser.stripe = customer;
+          newUser.stripe = customer.id;
           console.log()
       });
       newUser.save(function(err, results) {
