@@ -1,4 +1,5 @@
 var express = require('express');
+var stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 var router = express.Router();
 var moment = require('moment');
 
@@ -22,6 +23,13 @@ router.post('/register', function(req, res, next) {
       return next(err);
     } else {
       newUser.password = hash;
+      stripe.customers.create({
+        email: req.body.email,
+        description: 'Customer for joshua.jones@example.com',
+        source: "tok_18zZQPHLAQbWyfEHI3jjjXQk" // obtained with Stripe.js
+      }, function(err, customer) {
+        newUser.stripe = customer
+      });
       newUser.save(function(err, results) {
         if (err) {
           req.flash('message', {

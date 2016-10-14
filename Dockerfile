@@ -13,5 +13,5 @@ RUN git clone git://github.com/ThePBJain/BarTab-Server.git .
 # Install app dependencies
 RUN npm install
 
-EXPOSE 8080
+EXPOSE 3000
 CMD [ "npm", "start" ]

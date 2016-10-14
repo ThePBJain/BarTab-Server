@@ -30,6 +30,10 @@ var User = new Schema({
   admin: {
     type: Boolean,
     default: false
+  },
+  stripe: {
+    type: String,
+    unique: true
   }
 });
 
