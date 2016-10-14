@@ -23,11 +23,13 @@ router.post('/register', function(req, res, next) {
       return next(err);
     } else {
       newUser.password = hash;
+      console.log("IN HERE--------------")
       stripe.customers.create({
         email: req.body.email,
-        description: 'Customer for joshua.jones@example.com',
-        source: "tok_18zZQPHLAQbWyfEHI3jjjXQk" // obtained with Stripe.js
+        description: 'Customer for joshua.jones@example.com' // obtained with Stripe.js
       }, function(err, customer) {
+          console.log("MADE IT HERE--------------")
+          console.log(err)
         newUser.stripe = customer
       });
       newUser.save(function(err, results) {
