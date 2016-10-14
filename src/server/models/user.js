@@ -33,7 +33,8 @@ var User = new Schema({
   },
   stripe: {
     type: String,
-    unique: true
+    unique: true,
+    default: "NAN"
   }
 });
 

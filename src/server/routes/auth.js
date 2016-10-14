@@ -30,7 +30,10 @@ router.post('/register', function(req, res, next) {
       }, function(err, customer) {
           console.log("MADE IT HERE--------------")
           console.log(err)
-        newUser.stripe = customer
+          console.log(customer)
+          console.log(customer.id)
+          newUser.stripe = customer;
+          console.log()
       });
       newUser.save(function(err, results) {
         if (err) {

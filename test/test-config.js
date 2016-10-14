@@ -19,4 +19,3 @@ describe('app environment', function(){
   });
 
 });
-
