@@ -23,6 +23,7 @@ router.post('/register', function(req, res, next) {
       return next(err);
     } else {
       newUser.password = hash;
+      console.log(newUser)
       console.log("IN HERE--------------")
       stripe.customers.create({
         email: req.body.email,
@@ -33,10 +34,11 @@ router.post('/register', function(req, res, next) {
           console.log(customer)
           console.log(customer.id)
           newUser.stripe = customer.id;
-          console.log()
+          console.log(newUser)
       });
       newUser.save(function(err, results) {
         if (err) {
+          console.log(err)
           req.flash('message', {
             status: 'danger',
             value: 'Sorry. That email already exists. Try again.'
