@@ -35,27 +35,28 @@ router.post('/register', function(req, res, next) {
           console.log(customer.id)
           newUser.stripe = customer.id;
           console.log(newUser)
-      });
-      newUser.save(function(err, results) {
-        if (err) {
-          console.log(err)
-          req.flash('message', {
-            status: 'danger',
-            value: 'Sorry. That email already exists. Try again.'
-          });
-          return res.redirect('/auth/register');
-        } else {
-          req.logIn(newUser, function(err) {
+
+          newUser.save(function(err, results) {
             if (err) {
-              return next(err);
+              console.log(err)
+              req.flash('message', {
+                status: 'danger',
+                value: 'Sorry. That email already exists. Try again.'
+              });
+              return res.redirect('/auth/register');
+            } else {
+              req.logIn(newUser, function(err) {
+                if (err) {
+                  return next(err);
+                }
+                req.flash('message', {
+                  status: 'success',
+                  value: 'Successfully registered (and logged in).'
+                });
+                return res.redirect('/');
+              });
             }
-            req.flash('message', {
-              status: 'success',
-              value: 'Successfully registered (and logged in).'
-            });
-            return res.redirect('/');
           });
-        }
       });
     }
   });
