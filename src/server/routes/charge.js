@@ -145,7 +145,7 @@ router.post('/stripe', helpers.ensureAuthenticated, function(req, res, next) {
                   console.log("Successfully added new card to user");
                   //make new card default
                   stripe.customers.update(data.stripe, {
-                    default_source: card
+                    default_source: card.id
                   }, function(err, customer) {
                     // asynchronously called
                     if(err){
