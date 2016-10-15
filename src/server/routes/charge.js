@@ -59,7 +59,7 @@ router.post('/source', helpers.ensureAuthenticated, function(req, res, next) {
   // Simple validation
   /*
     Code is supposed to add new card to customer & set to default
-    but it doesn't check if card already exists, doesn't check if it has a default card already, etc...
+    but it doesn't check if a card even exists
   */
   Product.findById(req.body.productID, function(err, data) {
     if (err) {
@@ -152,28 +152,28 @@ router.post('/stripe', helpers.ensureAuthenticated, function(req, res, next) {
                       console.log("Error: " + err);
                     }else{
                       console.log("Successfully added new card to user");
+                      // Create Charge
+                      var charge = {
+                        amount: parseInt(req.body.productAmount)*100,
+                        currency: 'USD',
+                        customer: customer.id
+                      };
+                      stripe.charges.create(charge, function(err, charge) {
+                        if(err) {
+                          return next(err);
+                        } else {
+                          req.flash('message', {
+                            status: 'success',
+                            value: 'Thanks for purchasing a '+req.body.productName+'!'
+                          });
+                          res.redirect('auth/profile');
+                        }
+                      });
                     }
                   });
                 }
               }
             );
-          }
-        });
-        // Create Charge
-        var charge = {
-          amount: parseInt(req.body.productAmount)*100,
-          currency: 'USD',
-          card: stripeToken
-        };
-        stripe.charges.create(charge, function(err, charge) {
-          if(err) {
-            return next(err);
-          } else {
-            req.flash('message', {
-              status: 'success',
-              value: 'Thanks for purchasing a '+req.body.productName+'!'
-            });
-            res.redirect('auth/profile');
           }
         });
       }
