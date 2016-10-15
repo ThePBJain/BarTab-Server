@@ -53,12 +53,68 @@ router.get('/stripe', function(req, res, next) {
   res.send("Scram!");
 });
 
+router.post('/source', helpers.ensureAuthenticated, function(req, res, next) {
+
+  var userID = req.user._id;
+  // Simple validation
+  /*
+    Code is supposed to add new card to customer & set to default
+    but it doesn't check if card already exists, doesn't check if it has a default card already, etc...
+  */
+  Product.findById(req.body.productID, function(err, data) {
+    if (err) {
+      return next(err);
+    } else {
+      if (parseInt(req.body.productAmount) !== data.amount) {
+        req.flash('message', {
+          status: 'danger',
+          value: 'Error!'
+        });
+        return res.redirect('/');
+      } else {
+        // Get product details
+        User.findById(userID, function(err, data) {
+          if (err) {
+            return next(err);
+          } else {
+            data.products.push({ productID: req.body.productID, token: "PreviouSource" });
+            data.save();
+            // Create Charge
+            var charge = {
+              amount: parseInt(req.body.productAmount)*100,
+              currency: 'USD',
+              customer: data.stripe,
+              description: "Made using stored card number"
+            };
+            stripe.charges.create(charge, function(err, charge) {
+              if(err) {
+                return next(err);
+              } else {
+                req.flash('message', {
+                  status: 'success',
+                  value: 'Thanks for purchasing a '+req.body.productName+'!'
+                });
+                res.redirect('auth/profile');
+              }
+            });
+
+          }
+        });
+
+      }
+    }
+  });
+});
 
 router.post('/stripe', helpers.ensureAuthenticated, function(req, res, next) {
   // Obtain StripeToken
   var stripeToken = req.body.stripeToken;
   var userID = req.user._id;
   // Simple validation
+  /*
+    Code is supposed to add new card to customer & set to default
+    but it doesn't check if card already exists, doesn't check if it has a default card already, etc...
+  */
   Product.findById(req.body.productID, function(err, data) {
     if (err) {
       return next(err);
@@ -77,6 +133,30 @@ router.post('/stripe', helpers.ensureAuthenticated, function(req, res, next) {
           } else {
             data.products.push({ productID: req.body.productID, token: stripeToken });
             data.save();
+            //Push new card to customer object
+            stripe.customers.createSource(
+              data.stripe,
+              {source: stripeToken},
+              function(err, card) {
+                // asynchronously called
+                if(err){
+                  console.log("Error: " + err);
+                }else{
+                  console.log("Successfully added new card to user");
+                  //make new card default
+                  stripe.customers.update(data.stripe, {
+                    default_source: card
+                  }, function(err, customer) {
+                    // asynchronously called
+                    if(err){
+                      console.log("Error: " + err);
+                    }else{
+                      console.log("Successfully added new card to user");
+                    }
+                  });
+                }
+              }
+            );
           }
         });
         // Create Charge
