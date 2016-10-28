@@ -45,4 +45,10 @@ $(document).ready(function() {
     $('#product-price').val('');
   });
 
+  $('#buy-item-form').submit(function(event) {
+    var $form = $(this);
+    $form.find('button').prop('disabled', true);
+    $form.get(0).submit();
+  });
+
 });

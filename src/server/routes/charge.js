@@ -151,12 +151,13 @@ router.post('/stripe', helpers.ensureAuthenticated, function(req, res, next) {
                     if(err){
                       console.log("Error: " + err);
                     }else{
-                      console.log("Successfully added new card to user");
+                      console.log("Successfully made card default");
                       // Create Charge
                       var charge = {
                         amount: parseInt(req.body.productAmount)*100,
                         currency: 'USD',
-                        customer: customer.id
+                        customer: customer.id,
+                        description: "Made with new card for user"
                       };
                       stripe.charges.create(charge, function(err, charge) {
                         if(err) {

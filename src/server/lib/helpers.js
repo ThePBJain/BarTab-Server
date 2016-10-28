@@ -9,6 +9,10 @@ function ensureAdmin(req, res, next) {
   if (req.isAuthenticated() && req.user.admin) {
     return next();
   }
+  req.flash('message', {
+    status: 'danger',
+    value: 'You are not an Admin.'
+  });
   res.redirect('/auth/login');
 }
 

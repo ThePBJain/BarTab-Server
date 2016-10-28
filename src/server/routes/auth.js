@@ -110,7 +110,7 @@ router.get('/profile', helpers.ensureAuthenticated, function(req, res){
   });
 });
 
-router.get('/admin', helpers.ensureAuthenticated, function(req, res){
+router.get('/admin', helpers.ensureAdmin, function(req, res){
   return User.find({}, function(err, data) {
     if (err) {
       return next(err);
