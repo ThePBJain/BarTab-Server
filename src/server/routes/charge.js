@@ -75,11 +75,12 @@ router.post('/source', helpers.ensureAuthenticated, function(req, res, next) {
                 return res.redirect('/');
             } else {
                 // Get product details
+                var productName = data.name;
                 User.findById(userID, function(err, data) {
                     if (err) {
                         return next(err);
                     } else {
-                        data.products.push({ productID: req.body.productID, token: "PreviouSource" });
+                        data.products.push({ productID: req.body.productID, name: productName, token: "PreviouSource" });
                         data.save();
                         // Create Charge
                         var charge = {
@@ -136,11 +137,12 @@ router.post('/stripe', helpers.ensureAuthenticated, function(req, res, next) {
                 return res.redirect('/');
             } else {
                 // Get product details
+                var productName = data.name;
                 User.findById(userID, function(err, data) {
                     if (err) {
                         return next(err);
                     } else {
-                        data.products.push({ productID: req.body.productID, token: stripeToken });
+                        data.products.push({ productID: req.body.productID, name: productName, token: stripeToken });
                         data.save();
                         //Push new card to customer object
                         stripe.customers.createSource(

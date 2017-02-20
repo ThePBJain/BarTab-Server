@@ -7,8 +7,9 @@ WORKDIR /usr/src/app
 
 
 
-# Bundle app source
-RUN git clone git://github.com/ThePBJain/BarTab-Server.git .
+# Bundle app source... USE git for server, but copy for developement
+#RUN git clone git://github.com/ThePBJain/BarTab-Server.git .
+COPY . .
 
 # Install app dependencies
 RUN npm install
