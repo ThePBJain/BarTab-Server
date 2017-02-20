@@ -24,6 +24,11 @@ The back-end API includes:
 1. Run `mongod` in a seperate terminal window
 1. Run the app - `npm start` or `gulp`
 
+### Pranav
+
+1. docker-compose build --no-cache
+1. docker build -t ubuntu_web --no-cache .
+
 > The database, if empty, is seeded with an admin user - username: *ad@min.com* / password: *admin*
 
 ## Development Workflow

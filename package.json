@@ -21,7 +21,7 @@
     "bootstrap3",
     "stripe"
   ],
-  "author": "Michael Herman <michael@mherman.org>",
+  "author": "Pranav Jain <pranajain@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "bcryptjs": "^2.3.0",

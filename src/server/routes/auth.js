@@ -35,7 +35,7 @@ router.post('/register', function(req, res, next) {
           console.log(customer.id)
           newUser.stripe = customer.id;
           console.log(newUser)
-
+          //save the user
           newUser.save(function(err, results) {
             if (err) {
               console.log(err)
