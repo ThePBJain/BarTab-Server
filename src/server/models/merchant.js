@@ -62,4 +62,4 @@ Merchant.methods.comparePassword = function(password, done) {
 };
 
 
-module.exports = mongoose.model('merchants', User);
+module.exports = mongoose.model('merchants', Merchant);
