@@ -7,7 +7,7 @@ var passport = require('../lib/auth');
 var helpers = require('../lib/helpers');
 var User = require('../models/user');
 
-
+//todo: create register for merchants -> res.render('register', { merchant: req.merchant, message: req...
 router.get('/register', function(req, res, next){
   res.render('register', {
     user: req.user,
@@ -23,22 +23,22 @@ router.post('/register', function(req, res, next) {
       return next(err);
     } else {
       newUser.password = hash;
-      console.log(newUser)
-      console.log("IN HERE--------------")
+      console.log(newUser);
+      console.log("IN HERE--------------");
       stripe.customers.create({
         email: req.body.email,
         description: 'Customer for joshua.jones@example.com' // obtained with Stripe.js
       }, function(err, customer) {
-          console.log("MADE IT HERE--------------")
-          console.log(err)
-          console.log(customer)
-          console.log(customer.id)
+          console.log("MADE IT HERE--------------");
+          console.log(err);
+          console.log(customer);
+          console.log(customer.id);
           newUser.stripe = customer.id;
-          console.log(newUser)
+          console.log(newUser);
           //save the user
           newUser.save(function(err, results) {
             if (err) {
-              console.log(err)
+              console.log(err);
               req.flash('message', {
                 status: 'danger',
                 value: 'Sorry. That email already exists. Try again.'

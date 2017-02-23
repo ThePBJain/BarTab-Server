@@ -12,6 +12,8 @@ var mongoose = require('mongoose');
 var swig = require('swig');
 var passport = require('./lib/auth');
 var LocalStrategy = require('passport-local').Strategy;
+//todo: setup redis connection and stuffs
+var redis = require('./lib/redis');
 
 
 // *** seed the database *** //
@@ -34,6 +36,7 @@ var chargeRoutes = require('./routes/charge');
 var productAPIRoutes = require('./routes/api/product');
 var storeAPIRoutes = require('./routes/api/store');
 var userAPIRoutes = require('./routes/api/user');
+var tabRoutes = require('./routes/api/tab');
 
 
 // *** express instance *** //
@@ -86,6 +89,7 @@ app.use('/auth', authRoutes);
 app.use('/api/v1/', productAPIRoutes);
 app.use('/api/v1/', storeAPIRoutes);
 app.use('/api/v1/', userAPIRoutes);
+app.use('/tabs/', tabRoutes);
 
 
 // *** error handlers *** //

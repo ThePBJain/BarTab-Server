@@ -16,12 +16,17 @@ var Merchant = new Schema({
         unique: true,
         lowercase: true
     },
-    products: [
+    sales: [
         {
             productID: String,
             name: String,
             token: String,
             time: { type: Date, default: Date.now }
+        }
+    ],
+    menu: [
+        {
+            productID: String
         }
     ],
     password: {
@@ -33,13 +38,17 @@ var Merchant = new Schema({
         default: false
     },
     stripe: {
-        type: String,
+        type: String,  //(todo) connect to Merchant bank account
         unique: true,
         default: "NAN"
     },
     description: {
         type: String,
         required: true
+    },
+    location: {
+        type: [Number],     // [<longitude>, <latitude>]
+        index: '2dsphere'   // create the geospatial index
     }
 
 });

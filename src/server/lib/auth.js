@@ -3,6 +3,8 @@ var LocalStrategy = require('passport-local');
 
 var User = require('../models/user');
 
+//todo: set this up to work with Merchant too http://stackoverflow.com/a/21898892
+
 passport.use(new LocalStrategy({
     usernameField: 'email',
     passReqToCallback: true
