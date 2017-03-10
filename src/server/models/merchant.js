@@ -33,6 +33,10 @@ var Merchant = new Schema({
         type: String,
         required: true
     },
+    userType: {
+        type: String,
+        default: 'Merchant'
+    },
     admin: {
         type: Boolean,
         default: false
@@ -44,7 +48,8 @@ var Merchant = new Schema({
     },
     description: {
         type: String,
-        required: true
+        required: true,
+        default: "A cool bar!"
     },
     location: {
         type: [Number],     // [<longitude>, <latitude>]
