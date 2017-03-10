@@ -18,8 +18,33 @@
   <hr>
 
   <div class="row">
-
     <div class="col-xs-4">
+      {% if merchant %}
+      <h3>Menu:</h3>
+      <br>
+      <table class="table table-hover">
+        <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Price</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for product in menu %}
+        <tr>
+          <td>{{loop.index}}</td>
+          <td>
+            <a href="#" target="_blank">
+              {{product.name}}
+            </a>
+          </td>
+          <td>{{product.amount}}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
       <h3>API:</h3>
       <br>
       <ul>
@@ -28,7 +53,10 @@
         <li>GET All Products - api/v1/products</li>
         <li>POST All Products - api/v1/products</li>
         <li>GET Single Product - api/v1/product/:id</li>
+        <li>POST All Merchants - api/v1/merchants</li>
+        <li>GET Single Merchant - api/v1/merchant/:id</li>
       </ul>
+      {% endif %}
       <br>
       <h3>Add Product:</h3>
       <form id="add-product-form">
@@ -54,7 +82,7 @@
         <thead>
           <tr>
             <th>#</th>
-            <th>Token</th>
+            <th>Name</th>
             <th>Date</th>
           </tr>
         </thead>
@@ -64,7 +92,7 @@
             <td>{{loop.index}}</td>
             <td>
               <a href="https://dashboard.stripe.com/test/logs?object={{product.token}}" target="_blank">
-                {{product.token}}
+                {{product.name}}
               </a>
             </td>
             <td>{{moment(product.time).format("MM-DD-YYYY HH:mm")}}</td>
