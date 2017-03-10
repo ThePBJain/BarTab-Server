@@ -12,7 +12,8 @@ var mongoose = require('mongoose');
 var swig = require('swig');
 var passport = require('./lib/auth');
 var LocalStrategy = require('passport-local').Strategy;
-//todo: setup redis connection and stuffs
+
+//set up redis
 var redis = require('./lib/redis');
 
 
@@ -37,6 +38,8 @@ var productAPIRoutes = require('./routes/api/product');
 var storeAPIRoutes = require('./routes/api/store');
 var userAPIRoutes = require('./routes/api/user');
 var tabRoutes = require('./routes/api/tab');
+var merchantAuthRoutes = require('./routes/merchantAuth');
+var merchantAPIRoutes = require('./routes/api/merchant');
 
 
 // *** express instance *** //
@@ -89,7 +92,9 @@ app.use('/auth', authRoutes);
 app.use('/api/v1/', productAPIRoutes);
 app.use('/api/v1/', storeAPIRoutes);
 app.use('/api/v1/', userAPIRoutes);
+app.use('/api/v1/', merchantAPIRoutes);
 app.use('/tabs/', tabRoutes);
+app.use('/merchant/auth', merchantAuthRoutes);
 
 
 // *** error handlers *** //
