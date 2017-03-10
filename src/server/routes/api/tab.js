@@ -11,7 +11,8 @@ var User = require('../../models/user');
 var Merchant = require('../../models/merchant');
 var Product = require('../../models/product.js');
 var redis = require('../../lib/redis');
-//(todo) using redis, create, edit and delete tabs
+var stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+// using redis, create, edit and delete tabs
 //(todo) set up authentication for each merchant to access redis (NO ONE ELSE)
 
 //commands for redis
@@ -92,7 +93,8 @@ router.post('/open', helpers.ensureAuthenticated,
         console.log("OPENING TAB WITH USER: " + userID + "\n and MERCHANT: " + merchantID);
         var tabKey = "tab:" + merchantID + "." + userID;
 
-
+        //todo: if redis.exists(tabkey) then throw danger error.
+        //could mean that they are trying to override their currently open tab...
         redis.hmset(tabKey, {
                 "userID": userID,
                 "merchantID": merchantID,
@@ -353,10 +355,132 @@ router.get('/user/:id', helpers.ensureMerchantAuthenticated,
 
     });
 
-//find nearby bars (geolocationing)
 
 
 
 //(todo) when exiting or deleting tab, make it go through charge paths to charge card
+//close tab
+router.post('/close', helpers.ensureAuthenticated,
+    function(req, res, next) {
+        //var store = new Store({
+        //    'name': req.body.name,
+        //    'description': req.body.description,
+        //});
+        var userID = req.user._id.toString();
+        var merchantID = req.body.id;
+        console.log("CLOSING TAB WITH USER: " + userID + "\n and MERCHANT: " + merchantID);
+
+
+        var tabKey = "tab:" + merchantID + "." + userID;
+
+        redis.hgetall(tabKey, function (err, tab) {
+            if(err || !tab){
+                return next(err);
+            }else {
+                console.dir(tab);
+                var cost = Number(tab.tabTotal); //total payment required
+                //todo: get currency to work with different types
+                var numProducts = parseInt(tab.numProducts);
+                //get all products in array
+                var productIds = [];
+                var productTimes = [];
+                for(var i=0; i < numProducts; i++){
+                    var productIDKey = "Products." + i + ".productID";
+                    var productTimeKey = "Products." + i + ".time";
+                    console.log("For Key: " + productIDKey + ", we got: " + tab[productIDKey]);
+                    productIds.push(tab[productIDKey]);
+                    productTimes.push(new Date(tab[productTimeKey]));
+                }
+                console.log("Arrays look like: " + productIds.toString() + " and " + productTimes.toString());
+                //let charge go through
+                User.findById(userID, function(err, user) {
+                    if (err) {
+                        return next(err);
+                    } else {
+                        //get rid of this cuz no need for users to have this data
+                        user.products.push({ productID: req.body.productID, name: "allDaProducts", token: "PreviouSource" });
+                        user.save();
+
+                        // Create Charge
+                        var charge = {
+                            amount: cost*100.0,
+                            currency: 'USD',
+                            customer: user.stripe,
+                            description: "Tab bought with stored card number"
+                        };
+                        stripe.charges.create(charge, function(err, charge) {
+                            if(err) {
+                                return next(err);
+                            } else {
+                                req.flash('message', {
+                                    status: 'success',
+                                    value: 'Thanks for coming!'
+                                });
+                                console.log("Successfully made a purchase with stored card on a TAB!");
+                                res.redirect('/auth/profile');
+                                //will stuff still happen?
+                                //get and push new Product data to merchant...
+                                console.log("attempting sales input");
+                                Product.find({ '_id': { $in: productIds }}, { name: 1, amount: 1 }, function(err, data) {
+                                    if(!err) {
+                                        console.log(data);
+                                        //now put it into merchant
+                                        var productData = [];
+                                        for (var i = 0; i < numProducts; i++) {
+                                            //find repeats... see if you can get rid of this so it runs faster than O(n*m) time...
+                                            //could get rid of it if mongo auto returns json instead of array...
+                                            var productName = "";
+                                            var productAmount = 0.0;
+                                            for(var j = 0; j < data.length; j++){
+                                                if(productIds[i] == data[j]._id){
+                                                    productName = data[j].name;
+                                                    productAmount = data[j].amount;
+                                                }
+                                            }
+                                            var obj = {
+                                                productID: productIds[i],
+                                                name: productName,
+                                                token: "Tabs4Life",
+                                                price: productAmount,
+                                                time: productTimes[i]
+                                            };
+                                            productData.push(obj);
+                                        }
+                                        var options = {new: true};
+                                        Merchant.findByIdAndUpdate(merchantID, {$push: {sales: {$each: productData}}}, options, function (err, merchant) {
+                                            if (err) {
+                                                console.log(err);
+                                            }
+                                            console.log("Updated Merchant: " + merchant);
+                                        });
+                                    }else{
+                                        console.log(err);
+                                    }
+                                });
+                                //delete tab from redis
+                                var tabsMember = merchantID + "." + userID;
+                                var merchantTabs = "tabs:" + merchantID;
+                                redis.multi().
+                                del(tabKey).
+                                srem(merchantTabs, tabsMember).
+                                exec(function (err, reply) {
+                                    if(err){
+                                        console.log(err);
+                                    }else {
+                                        console.log("Deleted Key from redis!");
+
+                                    }
+                                });
+
+                            }
+                        });
+
+                    }
+                });
+            }
+        });
+
+
+    });
 
 module.exports = router;
