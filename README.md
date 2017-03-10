@@ -33,10 +33,8 @@ The back-end API includes:
 
 ##Todo
 
-- (todo) Build models for Merchant and Product
 - (todo) Setup Stripe Connect and unit test
 - (todo) Setup proper security (ssl, proper auth workflow)
-- (todo) Setup Tabs
 - (todo) Build iOS app to access endpoints
 
 ## Development Workflow
