@@ -7,7 +7,6 @@ var passport = require('../lib/auth');
 var helpers = require('../lib/helpers');
 var User = require('../models/user');
 
-//todo: create register for merchants -> res.render('register', { merchant: req.merchant, message: req...
 router.get('/register', function(req, res, next){
   res.render('register', {
     user: req.user,
@@ -70,7 +69,7 @@ router.get('/login', helpers.loginRedirect, function(req, res, next){
 });
 
 router.post('/login', function(req, res, next) {
-  passport.authenticate('local', function(err, user, info) {
+  passport.authenticate('user-local', function(err, user, info) {
     if (err) {
       return next(err);
     }
