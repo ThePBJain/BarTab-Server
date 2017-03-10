@@ -67,7 +67,9 @@ router.post('/source', helpers.ensureAuthenticated, function(req, res, next) {
         if (err) {
             return next(err);
         } else {
-            if (parseInt(req.body.productAmount) !== data.amount) {
+            if (Number(req.body.productAmount) != data.amount) {
+                console.log("SENT TO US: " + req.body.productAmount + "\n What we have stored: " + data.amount);
+
                 req.flash('message', {
                     status: 'danger',
                     value: 'Error!'
@@ -84,7 +86,7 @@ router.post('/source', helpers.ensureAuthenticated, function(req, res, next) {
                         data.save();
                         // Create Charge
                         var charge = {
-                            amount: parseInt(req.body.productAmount)*100,
+                            amount: Number(req.body.productAmount)*100,
                             currency: 'USD',
                             customer: data.stripe,
                             description: "Made using stored card number"
@@ -129,7 +131,7 @@ router.post('/stripe', helpers.ensureAuthenticated, function(req, res, next) {
         if (err) {
             return next(err);
         } else {
-            if (parseInt(req.body.productAmount) !== data.amount) {
+            if (Number(req.body.productAmount) !== data.amount) {
                 req.flash('message', {
                     status: 'danger',
                     value: 'Error!'
@@ -165,7 +167,7 @@ router.post('/stripe', helpers.ensureAuthenticated, function(req, res, next) {
                                             console.log("Successfully made card default");
                                             // Create Charge
                                             var charge = {
-                                                amount: parseInt(req.body.productAmount)*100,
+                                                amount: Number(req.body.productAmount)*100,
                                                 currency: 'USD',
                                                 customer: customer.id,
                                                 description: "Made with new card for user"
