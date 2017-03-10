@@ -5,7 +5,7 @@ var mongoose = require('mongoose-q')(require('mongoose'));
 var passport = require('../../lib/auth');
 var helpers = require('../../lib/helpers');
 var Product = require('../../models/product');
-
+var Merchant = require('../../models/merchant');
 
 // ** products ** //
 
@@ -46,12 +46,22 @@ router.get('/products/:id', helpers.ensureAdminJSON,
 });
 
 // add new product
-router.post('/products', helpers.ensureAdminJSON,
+router.post('/products', helpers.ensureMerchantAuthenticated,
   function(req, res, next) {
   var product = new Product({
     name: req.body.name,
     amount: req.body.amount
   });
+  var productData = { productID: product._id};
+  var options = {new:true};
+  Merchant.findByIdAndUpdateQ(req.user._id, {$push: {menu: productData}}, options)
+      .then(function(merchant){
+        console.dir("found merchant" + merchant);
+      })
+      .catch(function(err) {
+      return next(err);
+  }).done();
+
   product.saveQ()
   .then(function(result) {
     res.status(200)
@@ -68,7 +78,7 @@ router.post('/products', helpers.ensureAdminJSON,
 });
 
 // update SINGLE product
-router.put('/products/:id', helpers.ensureAdminJSON,
+router.put('/products/:id', helpers.ensureMerchantAuthenticated,
   function(req, res, next) {
   var id = req.params.id;
   var update = req.body;
@@ -89,10 +99,19 @@ router.put('/products/:id', helpers.ensureAdminJSON,
 });
 
 // delete SINGLE product
-router.delete('/products/:id', helpers.ensureAdminJSON,
+router.delete('/products/:id', helpers.ensureMerchantAuthenticated,
   function(req, res, next) {
+  var productData = { productID: req.params.id};
+  var options = {new:true};
   Product.findByIdAndRemoveQ(req.params.id)
   .then(function(product) {
+    //todo: find and remove it from merchant menu
+      Merchant.findByIdAndUpdate(req.user._id, {$pull: {menu: productData}}, options, function(err, merchant){
+        if(err) {
+          res.send(err);
+        }
+        console.dir("found merchant" + merchant);
+      });
     res.status(200)
     .json({
       status: 'success',
