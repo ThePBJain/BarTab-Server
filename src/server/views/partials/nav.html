@@ -18,11 +18,16 @@
           <li><a href="/auth/admin">Admin</a></li>
           <li><a href="/auth/profile">Profile</a></li>
           <li><a href="/auth/logout">Logout</a></li>
+        {% elseif user.description %}
+          <li><a href="/merchant/auth/admin">Merchant</a></li>
+          <li><a href="/merchant/auth/profile">Profile</a></li>
+          <li><a href="/merchant/auth/logout">Logout</a></li>
         {% elseif user %}
           <li><a href="/auth/profile">Profile</a></li>
           <li><a href="/auth/logout">Logout</a></li>
         {% else %}
           <li><a href="/auth/login">Register/Login</a></li>
+          <li><a href="/merchant/auth/login">Merchant Login</a></li>
         {% endif %}
       </ul>
     </div>
