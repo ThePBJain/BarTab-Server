@@ -21,6 +21,7 @@ var Merchant = new Schema({
             productID: String,
             name: String,
             token: String,
+            price: Number,
             time: { type: Date, default: Date.now }
         }
     ],

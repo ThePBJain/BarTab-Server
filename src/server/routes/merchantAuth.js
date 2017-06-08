@@ -11,7 +11,6 @@ var helpers = require('../lib/helpers');
 var Merchant = require('../models/merchant');
 var Product = require('../models/product');
 
-//todo: create register for merchants -> res.render('register', { merchant: req.merchant, message: req...
 router.get('/register', function(req, res, next){
     res.render('register', {
         merchant: req.user,
@@ -32,15 +31,30 @@ router.post('/register', function(req, res, next) {
             newMerchant.password = hash;
             console.log(newMerchant);
             // todo: create stripe merchant in connect here
-            //leave a customer for now
-            stripe.customers.create({
+            //leave a merchant for now
+            stripe.accounts.create({
                 email: req.body.email,
-                description: 'Merchant for Bartab' // obtained with Stripe.js
-            }, function(err, customer) {
+                managed: true,
+                country: 'US',
+                tos_acceptance: {
+                    date: Math.floor(Date.now() / 1000),
+                    ip: req.connection.remoteAddress // Assumes you're not using a proxy
+                },
+                legal_entity: {
+                    first_name: req.body.firstName,
+                    last_name: req.body.lastName,
+                    type: req.body.type,
+                    dob: {
+                        "day": null,
+                        "month": null,
+                        "year": null
+                    }
+                }
+            }, function(err, merchant) {
                 console.log(err);
-                console.log(customer);
-                console.log(customer.id);
-                newMerchant.stripe = customer.id;
+                console.log(merchant);
+                console.log(merchant.id);
+                newMerchant.stripe = merchant.id;
                 console.log(newMerchant);
                 //add merchant location here...
                 if (req.body.long && req.body.lat) {
@@ -148,6 +162,60 @@ router.get('/admin', helpers.ensureMerchantAuthenticated, function(req, res){
             }else {
                 return res.render('admin', {menu: [], data: sales, moment: moment, merchant: req.user});
             }
+        }
+    });
+});
+
+router.post('/update', function(req, res, next) {
+
+    Merchant.findById(req.user._id, function(err, merchant) {
+        //format is m/d/YYY
+        var bdays = req.body.dob.split("/");
+        if (err) {
+            return next(err);
+        } else {
+            console.log(req.body.dob);
+            stripe.accounts.update(merchant.stripe,
+            {
+                legal_entity: {
+                    first_name: req.body.firstName,
+                    last_name: req.body.lastName,
+                    type: req.body.type,
+                    dob: {
+                        "day": bdays[1],
+                        "month": bdays[0],
+                        "year": bdays[2]
+                    }
+                }
+            }, function(err, reply) {
+                console.log(err);
+                console.log(reply);
+                //todo: save the merchant for when we eventually update it with names and shit
+                    /*
+                merchant.save(function(err, results) {
+                    if (err) {
+                        console.log(err);
+                        req.flash('message', {
+                            status: 'danger',
+                            value: 'Sorry. That email already exists. Try again.'
+                        });
+                        return res.redirect('/merchant/auth/register');
+                    } else {
+                        req.flash('message', {
+                            status: 'success',
+                            value: 'Sucessfully updated stripe.'
+                        });
+                        return res.redirect('/');
+
+                    }
+                });
+                */
+                    req.flash('message', {
+                        status: 'success',
+                        value: 'Sucessfully updated stripe.'
+                    });
+                    return res.redirect('/');
+            });
         }
     });
 });

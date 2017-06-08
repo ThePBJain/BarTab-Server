@@ -36,6 +36,7 @@ The back-end API includes:
 - (todo) Setup Stripe Connect and unit test
 - (todo) Setup proper security (ssl, proper auth workflow)
 - (todo) Build iOS app to access endpoints
+- todo: implement csrf
 
 ## Development Workflow
 

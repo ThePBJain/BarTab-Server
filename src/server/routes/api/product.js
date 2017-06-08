@@ -28,7 +28,7 @@ router.get('/products', helpers.ensureAdminJSON,
 });
 
 // get SINGLE product
-router.get('/products/:id', helpers.ensureAdminJSON,
+router.get('/product/:id', helpers.ensureAdminJSON,
   function(req, res, next) {
   Product.findByIdQ(req.params.id)
   .then(function(product) {
@@ -46,7 +46,7 @@ router.get('/products/:id', helpers.ensureAdminJSON,
 });
 
 // add new product
-router.post('/products', helpers.ensureMerchantAuthenticated,
+router.post('/product', helpers.ensureMerchantAuthenticated,
   function(req, res, next) {
   var product = new Product({
     name: req.body.name,
@@ -78,7 +78,7 @@ router.post('/products', helpers.ensureMerchantAuthenticated,
 });
 
 // update SINGLE product
-router.put('/products/:id', helpers.ensureMerchantAuthenticated,
+router.put('/product/:id', helpers.ensureMerchantAuthenticated,
   function(req, res, next) {
   var id = req.params.id;
   var update = req.body;
@@ -99,13 +99,14 @@ router.put('/products/:id', helpers.ensureMerchantAuthenticated,
 });
 
 // delete SINGLE product
-router.delete('/products/:id', helpers.ensureMerchantAuthenticated,
+// todo: make sure that it deletes ONLY if it finds it in current merchant's menu...
+router.delete('/product/:id', helpers.ensureMerchantAuthenticated,
   function(req, res, next) {
   var productData = { productID: req.params.id};
   var options = {new:true};
   Product.findByIdAndRemoveQ(req.params.id)
   .then(function(product) {
-    //todo: find and remove it from merchant menu
+    // find and remove it from merchant menu
       Merchant.findByIdAndUpdate(req.user._id, {$pull: {menu: productData}}, options, function(err, merchant){
         if(err) {
           res.send(err);

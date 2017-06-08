@@ -23,6 +23,18 @@
     <div class="form-group">
       <input type="number" name="lat" placeholder="Latitude" class="form-control"/>
     </div>
+    <div class="form-group">
+      <input type="text" name="firstName" placeholder="First Name" class="form-control"/>
+    </div>
+    <div class="form-group">
+      <input type="text" name="lastName" placeholder="Last Name" class="form-control"/>
+    </div>
+    <div class="form-group">
+      <input type="text" id="datepicker" name="dob" placeholder="Date of Birth" class="form-control"/>
+    </div>
+    <div class="form-group">
+      <input type="text" name="type" value="individual" class="form-control"/>
+    </div>
     <button type="submit" class="btn btn-default">Submit</button>
     &nbsp;
     <a href="/"><button type="button" class="btn btn-primary">Cancel</button></a>
@@ -30,5 +42,6 @@
   <br>
   <p>Already registered? Go <a href="login">Login</a>!</p>
 </div>
+
 
 {% endblock %}

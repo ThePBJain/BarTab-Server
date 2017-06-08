@@ -167,7 +167,7 @@ router.post('/stripe', helpers.ensureAuthenticated, function(req, res, next) {
                                             console.log("Successfully made card default");
                                             // Create Charge
                                             var charge = {
-                                                amount: Number(req.body.productAmount)*100,
+                                                amount: Number(req.body.productAmount)*100.0,
                                                 currency: 'USD',
                                                 customer: customer.id,
                                                 description: "Made with new card for user"

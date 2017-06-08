@@ -35,7 +35,9 @@
         <tr>
           <td>{{loop.index}}</td>
           <td>
-            <a href="#" target="_blank">
+            <form id="delete-product-form{{product.id}}">
+              <button type="submit" class="btn btn-primary">Delete</button>
+            </form>
               {{product.name}}
             </a>
           </td>
@@ -66,7 +68,7 @@
         </div>
         <div class="form-group">
           <label for="product-price">Product Price</label>
-          <input input type="number" step="0.01" class="form-control" id="product-price" placeholder="Enter a price" required>
+          <input type="number" step="0.01" class="form-control" id="product-price" placeholder="Enter a price" required>
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
       </form>
@@ -100,6 +102,37 @@
         {% endfor %}
         </tbody>
       </table>
+      <br>
+      <h3>Update Merchant Details: </h3>
+      <form role="form" action="update" method="post" style="max-width: 300px;">
+        <div class="form-group">
+          <input type="email" name="email" placeholder="Enter Email" class="form-control"/>
+        </div>
+        <div class="form-group">
+          <input type="password" name="password" placeholder="Password" class="form-control"/>
+        </div>
+        <div class="form-group">
+          <input type="number" name="long" placeholder="Longitude" class="form-control"/>
+        </div>
+        <div class="form-group">
+          <input type="number" name="lat" placeholder="Latitude" class="form-control"/>
+        </div>
+        <div class="form-group">
+          <input type="text" name="firstName" placeholder="First Name" class="form-control"/>
+        </div>
+        <div class="form-group">
+          <input type="text" name="lastName" placeholder="Last Name" class="form-control"/>
+        </div>
+        <div class="form-group">
+          <input type="text" id="datepicker" name="dob" placeholder="Date of Birth" class="form-control"/>
+        </div>
+        <div class="form-group">
+          <input type="text" name="type" value="individual" class="form-control"/>
+        </div>
+        <button type="submit" class="btn btn-default">Submit</button>
+        &nbsp;
+        <a href="/"><button type="button" class="btn btn-primary">Cancel</button></a>
+      </form>
     </div>
 
   </div>
