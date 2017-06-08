@@ -118,7 +118,7 @@ router.delete('/merchants/:id', helpers.ensureAdminJSON,
     });
 
 //get value from query localhost.com/api/v1/merchants/nearby?long=<longitude value>&lat=<latitude value>
-router.get('/merchants/nearby', helpers.ensureAuthenticated,
+router.get('/merchants/nearby', passport.authenticate('user-mobile', { session: false }),
     function(req, res, next) {
 
         var longitude = Number(req.query.long);
@@ -126,10 +126,26 @@ router.get('/merchants/nearby', helpers.ensureAuthenticated,
 
         var point = { type : "Point", coordinates : [longitude, latitude] };
         //maxDistance in meters? and returns max 5 values.
-        Merchant.geoNear(point, { maxDistance : 10, limit: 5, spherical : true }, function(err, results, stats) {
+        var options = {
+            maxDistance : 10,
+            limit: 5,
+            spherical : true
+        };
+        //options.query = { password: 0, stripe: 0, admin: 0, menu: 0, sales: 0};
+        Merchant.geoNear(point, options, function(err, results, stats) {
             if(err){
                 return next(err);
             }else {
+                //todo: get rid of sensitive information
+                for(var i=0;i<results.length;i++){
+                    console.log(results[i].obj);
+                    console.log("The password is: " + results[i].obj.password);
+                    delete results[i].obj.password;
+                    delete results[i].obj.stripe;
+                    delete results[i].obj.admin;
+                    delete results[i].obj.menu;
+                    delete results[i].obj.sales;
+                }
                 console.log(results);
                 res.status(200)
                     .json({

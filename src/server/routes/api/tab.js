@@ -81,8 +81,14 @@ var stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
  */
 
+//Todo: set up failsafes for all methods!!!!
+
+//authorization functions
+const requireAuth = passport.authenticate('user-mobile', { session: false });
+//all functions with "requireAuth" used to have helpers.ensureAuthenticated
+
 //open Tab localhost:8080/tabs/open/:id <- id is for Merchant
-router.post('/open', helpers.ensureAuthenticated,
+router.post('/open', requireAuth,
     function(req, res, next) {
         //var store = new Store({
         //    'name': req.body.name,
@@ -160,6 +166,9 @@ router.post('/update/add', helpers.ensureMerchantAuthenticated,
 
 
         redis.hget(tabKey, "numProducts", function (err, reply) {
+            if(err){
+                console.log(err);
+            }
             var numProducts = parseInt(reply.toString());
             var productIDKey = "Products." + numProducts + ".productID";
             var productTimeKey = "Products." + numProducts + ".time";
@@ -301,7 +310,7 @@ router.post('/getall', helpers.ensureMerchantAuthenticated,
 
 //get tab info for user w/ userID like tabTotal and products bought
 //passing in merchantID for this specific user
-router.get('/tab/:id', helpers.ensureAuthenticated,
+router.get('/tab/:id', requireAuth,
     function(req, res, next) {
 
         var userID = req.user._id.toString();
@@ -360,7 +369,7 @@ router.get('/user/:id', helpers.ensureMerchantAuthenticated,
 
 //(todo) when exiting or deleting tab, make it go through charge paths to charge card
 //close tab
-router.post('/close', helpers.ensureAuthenticated,
+router.post('/close', requireAuth,
     function(req, res, next) {
         //var store = new Store({
         //    'name': req.body.name,

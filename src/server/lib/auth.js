@@ -1,5 +1,9 @@
 var passport = require('passport');
 var LocalStrategy = require('passport-local');
+//var OAuth2Strategy = require('passport-oauth').OAuth2Strategy;
+//const BasicStrategy = require('passport-http').BasicStrategy;
+var JwtStrategy = require('passport-jwt').Strategy;
+var ExtractJwt = require('passport-jwt').ExtractJwt;
 
 var User = require('../models/user');
 var Merchant = require('../models/merchant');
@@ -32,6 +36,27 @@ passport.use('user-local', new LocalStrategy({
         });
     })
 );
+passport.use('user-mobile', new JwtStrategy({
+        // Telling Passport to check authorization headers for JWT
+        jwtFromRequest: ExtractJwt.fromAuthHeader(),
+        // Telling Passport where to find the secret
+        secretOrKey: process.env.SECRET
+    },
+    function(payload, done) {
+        //console.log("Testing User-Mobile auth flow:  \nPayload: " + JSON.stringify(payload));
+        User.findOne({ email: payload.email }, function(err, user) {
+            if (err) {
+                return done(err);
+            }
+            if (!user) {
+                return done(null, false);
+            }else{
+
+                return done(null, user);
+            }
+        });
+    }
+));
 passport.use('merchant-local', new LocalStrategy({
         usernameField: 'email',
         passReqToCallback: true

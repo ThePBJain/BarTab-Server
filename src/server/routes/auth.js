@@ -2,10 +2,23 @@ var express = require('express');
 var stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 var router = express.Router();
 var moment = require('moment');
+const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 var passport = require('../lib/auth');
 var helpers = require('../lib/helpers');
 var User = require('../models/user');
+
+// Middleware to require login/auth
+const requireAuth = passport.authenticate('user-mobile', { session: false });
+const requireLogin = passport.authenticate('user-local', { session: false });
+
+
+function generateToken(user) {
+    return jwt.sign(user, process.env.SECRET, {
+        expiresIn: 604800 // in seconds
+    });
+}
 
 router.get('/register', function(req, res, next){
   res.render('register', {
@@ -91,6 +104,30 @@ router.post('/login', function(req, res, next) {
       return res.redirect('/');
     });
   })(req, res, next);
+});
+router.post('/authenticate', function(req, res, next) {
+    passport.authenticate('user-local', function(err, user, info) {
+        if (err) {
+            return next(err);
+        }
+        if (!user) {
+            console.log("No User found");
+            res.status(401).send({
+                success: false,
+                message: 'Invalid username and/or password.'
+            });
+        }else{
+            console.log("User found...");
+            var userInfo = helpers.setUserInfo(user);
+
+            var token = generateToken(userInfo);
+            res.status(200).json({
+                success: true,
+                token: 'JWT ' + token,
+                user: userInfo
+            });
+        }
+    })(req, res, next);
 });
 
 router.get('/logout', helpers.ensureAuthenticated, function(req, res){
