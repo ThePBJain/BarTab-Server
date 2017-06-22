@@ -87,7 +87,7 @@ var stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const requireAuth = passport.authenticate('user-mobile', { session: false });
 //all functions with "requireAuth" used to have helpers.ensureAuthenticated
 
-//open Tab localhost:8080/tabs/open/:id <- id is for Merchant
+//open Tab localhost:3000/tabs/open/:id <- id is for Merchant
 router.post('/open', requireAuth,
     function(req, res, next) {
         //var store = new Store({
@@ -368,6 +368,7 @@ router.get('/user/:id', helpers.ensureMerchantAuthenticated,
 
 
 //(todo) when exiting or deleting tab, make it go through charge paths to charge card
+//todo: allow function to close tabs even when there is no bill i.e tabTotal = 0
 //close tab
 router.post('/close', requireAuth,
     function(req, res, next) {
@@ -412,7 +413,7 @@ router.post('/close', requireAuth,
 
                         // Create Charge
                         var charge = {
-                            amount: cost*100.0,
+                            amount: Math.round(cost*100.0),
                             currency: 'USD',
                             customer: user.stripe,
                             description: "Tab bought with stored card number"
@@ -421,12 +422,13 @@ router.post('/close', requireAuth,
                             if(err) {
                                 return next(err);
                             } else {
-                                req.flash('message', {
-                                    status: 'success',
-                                    value: 'Thanks for coming!'
-                                });
+                                res.status(200)
+                                    .json({
+                                        status: 'success',
+                                        data: charge,
+                                        message: 'Retrieved tab.'
+                                    });
                                 console.log("Successfully made a purchase with stored card on a TAB!");
-                                res.redirect('/auth/profile');
                                 //will stuff still happen?
                                 //get and push new Product data to merchant...
                                 console.log("attempting sales input");
