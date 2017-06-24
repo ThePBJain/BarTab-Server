@@ -101,26 +101,54 @@ router.post('/open', requireAuth,
 
         //todo: if redis.exists(tabkey) then throw danger error.
         //could mean that they are trying to override their currently open tab...
-        redis.hmset(tabKey, {
-                "userID": userID,
-                "merchantID": merchantID,
-                "tabTotal": 0.0,
-                "numProducts": 0
-
-            }, function(err, reply) {
-            // reply is null when the key is missing
-                if(err){
-                    return next(err);
-                }else {
-                    console.log("Successfully opened tab!");
+        //redis.hget(tabKey, "numProducts", function (err, reply) {
+        redis.hgetall(tabKey, function (err, obj) {
+            if(err){
+                res.status(500)
+                    .json({
+                        status: 'error',
+                        data: err,
+                        message: 'Something went wrong'
+                    });
+            }else {
+                console.log("This is what we found when checking if tab is already open");
+                console.dir(obj);
+                if (obj) {
                     res.status(200)
                         .json({
                             status: 'success',
-                            data: reply,
+                            data: obj,
                             message: 'Retrieved tab.'
                         });
+                }else{
+                    redis.hmset(tabKey, {
+                        "userID": userID,
+                        "merchantID": merchantID,
+                        "tabTotal": 0.0,
+                        "numProducts": 0
+
+                    }, function(err, reply) {
+                        // reply is null when the key is missing
+                        if(err){
+                            return next(err);
+                        }else {
+                            console.log("Successfully opened tab!");
+                            res.status(200)
+                                .json({
+                                    status: 'success',
+                                    data: reply,
+                                    message: 'Created tab.'
+                                });
+                            //test output
+                            redis.hgetall(tabKey, function (err, obj) {
+                                console.dir(obj);
+                            });
+                        }
+                    });
                 }
+            }
         });
+
 
         var tabsMember = merchantID + "." + userID;
         var merchantTabs = "tabs:" + merchantID;
@@ -131,9 +159,6 @@ router.post('/open', requireAuth,
         });
 
         //test output
-        redis.hgetall(tabKey, function (err, obj) {
-            console.dir(obj);
-        });
         redis.smembers(merchantTabs, function(err, reply) {
             console.log(reply);
         });
@@ -408,84 +433,119 @@ router.post('/close', requireAuth,
                         return next(err);
                     } else {
                         //get rid of this cuz no need for users to have this data
-                        user.products.push({ productID: req.body.productID, name: "allDaProducts", token: "PreviouSource" });
+                        user.products.push({
+                            productID: req.body.productID,
+                            name: "allDaProducts",
+                            token: "PreviouSource"
+                        });
                         user.save();
 
-                        // Create Charge
-                        var charge = {
-                            amount: Math.round(cost*100.0),
-                            currency: 'USD',
-                            customer: user.stripe,
-                            description: "Tab bought with stored card number"
-                        };
-                        stripe.charges.create(charge, function(err, charge) {
-                            if(err) {
-                                return next(err);
-                            } else {
-                                res.status(200)
-                                    .json({
-                                        status: 'success',
-                                        data: charge,
-                                        message: 'Retrieved tab.'
-                                    });
-                                console.log("Successfully made a purchase with stored card on a TAB!");
-                                //will stuff still happen?
-                                //get and push new Product data to merchant...
-                                console.log("attempting sales input");
-                                Product.find({ '_id': { $in: productIds }}, { name: 1, amount: 1 }, function(err, data) {
-                                    if(!err) {
-                                        console.log(data);
-                                        //now put it into merchant
-                                        var productData = [];
-                                        for (var i = 0; i < numProducts; i++) {
-                                            //find repeats... see if you can get rid of this so it runs faster than O(n*m) time...
-                                            //could get rid of it if mongo auto returns json instead of array...
-                                            var productName = "";
-                                            var productAmount = 0.0;
-                                            for(var j = 0; j < data.length; j++){
-                                                if(productIds[i] == data[j]._id){
-                                                    productName = data[j].name;
-                                                    productAmount = data[j].amount;
-                                                }
-                                            }
-                                            var obj = {
-                                                productID: productIds[i],
-                                                name: productName,
-                                                token: "Tabs4Life",
-                                                price: productAmount,
-                                                time: productTimes[i]
-                                            };
-                                            productData.push(obj);
-                                        }
-                                        var options = {new: true};
-                                        Merchant.findByIdAndUpdate(merchantID, {$push: {sales: {$each: productData}}}, options, function (err, merchant) {
-                                            if (err) {
-                                                console.log(err);
-                                            }
-                                            console.log("Updated Merchant: " + merchant);
+                        //if tabTotal = 0 then charge will fail so might as well delete tab from redis
+                        if (cost == 0 && (productIds.length < 1)) {
+                            console.log("Tab cost is 0... soooo");
+                            //delete tab from redis
+                            var tabsMember = merchantID + "." + userID;
+                            var merchantTabs = "tabs:" + merchantID;
+                            redis.multi().del(tabKey).srem(merchantTabs, tabsMember).exec(function (err, reply) {
+                                if (err) {
+                                    console.log(err);
+                                    res.status(500)
+                                        .json({
+                                            status: 'error',
+                                            data: err,
+                                            message: 'failed to delete tab'
                                         });
-                                    }else{
-                                        console.log(err);
-                                    }
-                                });
-                                //delete tab from redis
-                                var tabsMember = merchantID + "." + userID;
-                                var merchantTabs = "tabs:" + merchantID;
-                                redis.multi().
-                                del(tabKey).
-                                srem(merchantTabs, tabsMember).
-                                exec(function (err, reply) {
-                                    if(err){
-                                        console.log(err);
-                                    }else {
-                                        console.log("Deleted Key from redis!");
+                                } else {
+                                    console.log("Deleted Key from redis!");
+                                    res.status(200)
+                                        .json({
+                                            status: 'success',
+                                            data: reply,
+                                            message: 'Closed Tab.'
+                                        });
+                                }
+                            });
+                        } else {
 
-                                    }
-                                });
 
-                            }
-                        });
+                            // Create Charge
+                            var charge = {
+                                amount: Math.round(cost * 100.0),
+                                currency: 'USD',
+                                customer: user.stripe,
+                                description: "Tab bought with stored card number"
+                            };
+                            stripe.charges.create(charge, function (err, charge) {
+                                if (err) {
+                                    res.status(500)
+                                        .json({
+                                            status: 'error',
+                                            data: err,
+                                            message: 'failed to send payment for tab'
+                                        });
+                                    //return next(err);
+                                } else {
+                                    res.status(200)
+                                        .json({
+                                            status: 'success',
+                                            data: charge,
+                                            message: 'Closed Tab.'
+                                        });
+                                    console.log("Successfully made a purchase with stored card on a TAB!");
+                                    //will stuff still happen?
+                                    //get and push new Product data to merchant...
+                                    console.log("attempting sales input");
+                                    Product.find({'_id': {$in: productIds}}, {name: 1, amount: 1}, function (err, data) {
+                                        if (!err) {
+                                            console.log(data);
+                                            //now put it into merchant
+                                            var productData = [];
+                                            for (var i = 0; i < numProducts; i++) {
+                                                //find repeats... see if you can get rid of this so it runs faster than O(n*m) time...
+                                                //could get rid of it if mongo auto returns json instead of array...
+                                                var productName = "";
+                                                var productAmount = 0.0;
+                                                for (var j = 0; j < data.length; j++) {
+                                                    if (productIds[i] == data[j]._id) {
+                                                        productName = data[j].name;
+                                                        productAmount = data[j].amount;
+                                                    }
+                                                }
+                                                var obj = {
+                                                    productID: productIds[i],
+                                                    name: productName,
+                                                    token: "Tabs4Life",
+                                                    price: productAmount,
+                                                    time: productTimes[i]
+                                                };
+                                                productData.push(obj);
+                                            }
+                                            var options = {new: true};
+                                            Merchant.findByIdAndUpdate(merchantID, {$push: {sales: {$each: productData}}}, options, function (err, merchant) {
+                                                if (err) {
+                                                    console.log(err);
+                                                }
+                                                console.log("Updated Merchant: " + merchant);
+                                            });
+                                        } else {
+                                            console.log(err);
+                                        }
+                                    });
+                                    //delete tab from redis
+                                    var tabsMember = merchantID + "." + userID;
+                                    var merchantTabs = "tabs:" + merchantID;
+                                    redis.multi().del(tabKey).srem(merchantTabs, tabsMember).exec(function (err, reply) {
+                                        if (err) {
+                                            console.log(err);
+                                        } else {
+                                            console.log("Deleted Key from redis!");
 
+                                        }
+                                    });
+
+                                }
+                            });
+                        }
                     }
                 });
             }
