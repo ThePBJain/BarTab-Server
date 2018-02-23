@@ -18,10 +18,10 @@
       <input type="password" name="password" placeholder="Password" class="form-control"/>
     </div>
     <div class="form-group">
-      <input type="number" name="long" placeholder="Longitude" class="form-control"/>
+      <input type="text" name="long" placeholder="Longitude" class="form-control"/>
     </div>
     <div class="form-group">
-      <input type="number" name="lat" placeholder="Latitude" class="form-control"/>
+      <input type="text" name="lat" placeholder="Latitude" class="form-control"/>
     </div>
     <div class="form-group">
       <input type="text" name="firstName" placeholder="First Name" class="form-control"/>
@@ -30,7 +30,19 @@
       <input type="text" name="lastName" placeholder="Last Name" class="form-control"/>
     </div>
     <div class="form-group">
-      <input type="text" id="datepicker" name="dob" placeholder="Date of Birth" class="form-control"/>
+        <div>
+              <div class='input-group date' id='datetimepicker1'>
+                <input type="text" id="datepicker" name="dob" placeholder="Date of Birth" class="form-control"/>
+                <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+              </div>
+          <script type="text/javascript">
+              $(function () {
+                  $('#datetimepicker1').datetimepicker();
+              });
+          </script>
+        </div>
     </div>
     <div class="form-group">
       <input type="text" name="type" value="individual" class="form-control"/>
@@ -42,6 +54,7 @@
   <br>
   <p>Already registered? Go <a href="login">Login</a>!</p>
 </div>
+
 
 
 {% endblock %}

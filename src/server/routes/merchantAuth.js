@@ -32,9 +32,13 @@ router.post('/register', function(req, res, next) {
             console.log(newMerchant);
             // todo: create stripe merchant in connect here
             //leave a merchant for now
+            var date = req.body.dob;//substring then parseInt
+            var month = parseInt(date.substring(0, 2));
+            var day = parseInt(date.substring(3,5));
+            var year = parseInt(date.substring(6, 10));
             stripe.accounts.create({
                 email: req.body.email,
-                managed: true,
+                type: "custom",
                 country: 'US',
                 tos_acceptance: {
                     date: Math.floor(Date.now() / 1000),
@@ -45,15 +49,15 @@ router.post('/register', function(req, res, next) {
                     last_name: req.body.lastName,
                     type: req.body.type,
                     dob: {
-                        "day": null,
-                        "month": null,
-                        "year": null
+                        "day": day,
+                        "month": month,
+                        "year": year
                     }
                 }
             }, function(err, merchant) {
-                console.log(err);
-                console.log(merchant);
-                console.log(merchant.id);
+                console.log("Stripe Error: " + err);
+                console.log("Stripe merchant: " + merchant);
+                console.log("Merchant ID: " + merchant.id);
                 newMerchant.stripe = merchant.id;
                 console.log(newMerchant);
                 //add merchant location here...
