@@ -9,7 +9,7 @@ if (process.env.NODE_ENV === 'test') {
 } else {
     SALT_WORK_FACTOR = 10;
 }
-
+//todo: add name to schema
 var Merchant = new Schema({
     email: {
         type: String,
